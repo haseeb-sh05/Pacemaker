@@ -46,6 +46,17 @@ class LoginWindow:
         p.grid(row=1, column=1)
 
         def register():
+            username = u.get().strip()
+            password = p.get().strip()
+
+            # --- Input validation ---
+            if username == "" or password == "":
+                messagebox.showerror("Error", "Username and password cannot be empty.")
+                return
+            if len(password) < 4:
+                messagebox.showerror("Error", "Password must be at least 4 characters long.")
+                return
+        
             users = self.load_users()
             if len(users) >= 10:
                 messagebox.showerror("Limit", "Maximum 10 users allowed.")

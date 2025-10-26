@@ -101,7 +101,7 @@ class LoginWindow:
         
             users = self.load_users()
             if len(users) >= 10:
-                messagebox.showerror("Limit", "Maximum 10 users allowed.")
+                messagebox.showerror("Limit Reached", "Maximum of 10 users allowed.")
                 return
             if any(x["user"] == u.get() for x in users):
                 messagebox.showerror("Error", "User already exists.")

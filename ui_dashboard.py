@@ -9,8 +9,8 @@ THEME_FONT = ("Segoe UI", 11)  # clean Windows-style font
 
 # Parameter limits (from PACEMAKER spec and Deliverable 1)
 LIMITS = {
-    "LRL": (30, 175),
-    "URL": (50, 175),
+    "Lower Rate Limit": (30, 175),
+    "Upper Rate Limit": (50, 175),
     "Atrial Amplitude": (0.5, 7.0),
     "Atrial Pulse Width": (0.05, 1.9),
     "Ventricular Amplitude": (0.5, 7.0),

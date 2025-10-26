@@ -3,6 +3,11 @@ from tkinter import messagebox
 import json, hashlib
 from ui_dashboard import Dashboard
 
+THEME_BG = "#f4f6f7"       # light neutral background (medical feel)
+THEME_ACCENT = "#0078D7"   # calm blue accent
+THEME_TEXT = "#222"        # dark grey text
+THEME_FONT = ("Segoe UI", 11)  # clean Windows-style font
+
 
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
@@ -12,12 +17,34 @@ class LoginWindow:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("DCM Login")
-        self.root.geometry("400x260")
-        tk.Label(self.root, text="Device Controller–Monitor", font=("Arial", 16, "bold")).pack(pady=20)
+        self.root.configure(bg=THEME_BG)
+        self.root.geometry("400x280")
+        self.root.eval('tk::PlaceWindow . center')
 
-        tk.Button(self.root, text="Login", width=15, command=self.login_screen).pack(pady=5)
-        tk.Button(self.root, text="Register", width=15, command=self.register_screen).pack(pady=5)
-        tk.Button(self.root, text="Quit", width=15, command=self.root.destroy).pack(pady=5)
+        # Header label
+        tk.Label(
+            self.root,
+            text="Device Controller–Monitor",
+            bg=THEME_BG,
+            fg=THEME_ACCENT,
+            font=("Segoe UI", 16, "bold")
+        ).pack(pady=20)
+
+        # Styled buttons
+        for text, cmd in [("Login", self.login_screen),
+                        ("Register", self.register_screen),
+                        ("Quit", self.root.destroy)]:
+            tk.Button(
+                self.root,
+                text=text,
+                width=15,
+                command=cmd,
+                bg=THEME_ACCENT,
+                fg="white",
+                font=THEME_FONT,
+                relief="flat",
+                activebackground="#005A9E"
+            ).pack(pady=7)
 
         self.root.mainloop()
 
@@ -37,13 +64,28 @@ class LoginWindow:
     def register_screen(self):
         win = tk.Toplevel(self.root)
         win.title("Register")
+        win.configure(bg=THEME_BG)
+        win.geometry("360x190")
+        
+        win.update_idletasks()
+        w = win.winfo_width()
+        h = win.winfo_height()
+        x = (win.winfo_screenwidth() // 2) - (w // 2)
+        y = (win.winfo_screenheight() // 2) - (h // 2)
+        win.geometry(f"+{x}+{y}")
 
-        tk.Label(win, text="Username").grid(row=0, column=0)
-        tk.Label(win, text="Password").grid(row=1, column=0)
-        u = tk.Entry(win)
-        p = tk.Entry(win, show="*")
-        u.grid(row=0, column=1)
-        p.grid(row=1, column=1)
+
+        frame = tk.Frame(win, bg=THEME_BG, padx=20, pady=20)
+        frame.pack()
+
+        tk.Label(frame, text="Username", bg=THEME_BG, fg=THEME_TEXT, font=THEME_FONT).grid(row=0, column=0, pady=5, sticky="e")
+        tk.Label(frame, text="Password", bg=THEME_BG, fg=THEME_TEXT, font=THEME_FONT).grid(row=1, column=0, pady=5, sticky="e")
+
+        u = tk.Entry(frame, width=20)
+        p = tk.Entry(frame, show="*", width=20)
+        u.grid(row=0, column=1, pady=5)
+        p.grid(row=1, column=1, pady=5)
+
 
         def register():
             username = u.get().strip()
@@ -69,19 +111,37 @@ class LoginWindow:
             messagebox.showinfo("Registered", "User registered successfully.")
             win.destroy()
 
-        tk.Button(win, text="Register", command=register).grid(row=2, column=0, columnspan=2, pady=5)
+        
+        tk.Button(frame, text="Register",
+                bg=THEME_ACCENT, fg="white", font=THEME_FONT,
+                relief="flat", command=register).grid(row=2, column=0, columnspan=2, pady=10)
 
     # ----- login -----
     def login_screen(self):
         win = tk.Toplevel(self.root)
         win.title("Login")
+        win.configure(bg=THEME_BG)
+        win.geometry("360x190")
 
-        tk.Label(win, text="Username").grid(row=0, column=0)
-        tk.Label(win, text="Password").grid(row=1, column=0)
-        u = tk.Entry(win)
-        p = tk.Entry(win, show="*")
-        u.grid(row=0, column=1)
-        p.grid(row=1, column=1)
+        win.update_idletasks()
+        w = win.winfo_width()
+        h = win.winfo_height()
+        x = (win.winfo_screenwidth() // 2) - (w // 2)
+        y = (win.winfo_screenheight() // 2) - (h // 2)
+        win.geometry(f"+{x}+{y}")
+
+
+        frame = tk.Frame(win, bg=THEME_BG, padx=15, pady=15)
+        frame.pack()
+
+        tk.Label(frame, text="Username", bg=THEME_BG, fg=THEME_TEXT, font=THEME_FONT).grid(row=0, column=0, pady=5, sticky="e")
+        tk.Label(frame, text="Password", bg=THEME_BG, fg=THEME_TEXT, font=THEME_FONT).grid(row=1, column=0, pady=5, sticky="e")
+
+        u = tk.Entry(frame, width=20)
+        p = tk.Entry(frame, show="*", width=20)
+        u.grid(row=0, column=1, pady=5)
+        p.grid(row=1, column=1, pady=5)
+
 
         def login():
             users = self.load_users()
@@ -93,4 +153,6 @@ class LoginWindow:
                     return
             messagebox.showerror("Error", "Invalid credentials.")
 
-        tk.Button(win, text="Login", command=login).grid(row=2, column=0, columnspan=2, pady=5)
+        tk.Button(frame, text="Login",
+        bg=THEME_ACCENT, fg="white", font=THEME_FONT,
+        relief="flat", command=login).grid(row=2, column=0, columnspan=2, pady=10)

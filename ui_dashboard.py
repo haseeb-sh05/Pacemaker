@@ -2,6 +2,11 @@ import tkinter as tk
 from tkinter import messagebox
 import json
 
+THEME_BG = "#f4f6f7"       # light neutral background (medical feel)
+THEME_ACCENT = "#0078D7"   # calm blue accent
+THEME_TEXT = "#222"        # dark grey text
+THEME_FONT = ("Segoe UI", 11)  # clean Windows-style font
+
 # Parameter limits (from PACEMAKER spec and Deliverable 1)
 LIMITS = {
     "LRL": (30, 175),
@@ -28,7 +33,7 @@ class Dashboard:
 
         # --- mode selection ---
         self.mode = tk.StringVar(value="AOO")
-        frame_modes = tk.LabelFrame(self.root, text="Pacing Mode Selection")
+        frame_modes = tk.LabelFrame(self.root, text="Pacing Mode Selection", bg=THEME_BG, fg=THEME_ACCENT, font=THEME_FONT)
         frame_modes.pack(pady=5)
         for m in MODES:
             tk.Radiobutton(frame_modes, text=m, variable=self.mode,
@@ -45,7 +50,9 @@ class Dashboard:
             self.entries[key] = e
 
         # --- buttons ---
-        tk.Button(self.root, text="Save Parameters", command=self.save_params).pack(pady=5)
+        tk.Button(self.root, text="Save Parameters",
+          bg=THEME_ACCENT, fg="white", font=THEME_FONT, relief="flat",
+          command=self.save_params).pack(pady=5)
         tk.Button(self.root, text="Reset", command=self.reset_fields).pack(pady=2)
         tk.Button(self.root, text="About", command=self.about).pack(pady=2)
 

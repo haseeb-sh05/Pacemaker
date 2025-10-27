@@ -129,17 +129,8 @@ class Dashboard:
             command=self.save_params
         ).pack(pady=5)
 
-        tk.Button(
-            self.root, text="Reset",
-            bg=THEME_ACCENT, fg="white", font=THEME_FONT, relief="flat",
-            command=self.reset_fields
-        ).pack(pady=2)
-
-        tk.Button(
-            self.root, text="About",
-            bg=THEME_ACCENT, fg="white", font=THEME_FONT, relief="flat",
-            command=self.about
-        ).pack(pady=2)
+        tk.Button(self.root, text="Reset", command=self.reset_fields).pack(pady=2)
+        tk.Button(self.root, text="About", command=self.about).pack(pady=2)
 
         # Load any previously saved parameters for this user
         self.load_previous()

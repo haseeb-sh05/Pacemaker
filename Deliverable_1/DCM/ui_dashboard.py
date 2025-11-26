@@ -38,10 +38,17 @@ class Dashboard:
         self.serial = None            # Serial connection object
         self.device_id = None         # Currently connected device's ID
 
-        self.root = tk.Tk()
+        # Initialize the root window first
+        self.root = tk.Tk()  
+        self.root.state("zoomed")  # Then maximize the window on startup
+        
         self.root.title(f"DCM – {username}")
         self.root.configure(bg=THEME_BG)
-        self.root.state("zoomed")  # Opens maximized for clarity
+        
+        # Set minimum window size to prevent taskbar overlap
+        self.root.minsize(600, 500)
+
+        # Create Save Parameters button with more padding
 
         tk.Label(
             self.root,
@@ -112,22 +119,47 @@ class Dashboard:
         frame_params.pack(pady=10)
 
         # Generate entry fields dynamically from LIMITS dictionary
+        self.entries = {}
+        self.sliders = {}
+
         for i, key in enumerate(LIMITS.keys()):
+            lo, hi = LIMITS[key]
+
+            # LABEL
             tk.Label(
                 frame_params, text=key,
                 bg=THEME_BG, fg=THEME_TEXT, font=THEME_FONT
             ).grid(row=i, column=0, sticky="e", padx=5, pady=3)
 
-            e = tk.Entry(frame_params, width=10, font=THEME_FONT)
-            e.grid(row=i, column=1, padx=5, pady=3)
-            self.entries[key] = e
+            # ENTRY BOX
+            entry = tk.Entry(frame_params, width=8, font=THEME_FONT)
+            entry.grid(row=i, column=1, padx=5, pady=3)
+            self.entries[key] = entry
 
-        # SECTION 4: CONTROL BUTTONS
+            # SLIDER
+            slider = tk.Scale(
+                frame_params, 
+                from_=lo, to=hi,
+                orient="horizontal",
+                length=250,
+                resolution=0.1 if (hi - lo) < 10 else 1,   # Finer control for amplitudes/pulse width
+                bg=THEME_BG,
+                fg=THEME_TEXT,
+                highlightthickness=0,
+                command=lambda val, k=key: self.update_entry_from_slider(k, val)
+            )
+            slider.grid(row=i, column=2, padx=10, pady=3)
+            self.sliders[key] = slider
+
+            # Keep entry + slider synced both directions
+            entry.bind("<KeyRelease>", lambda event, k=key: self.update_slider_from_entry(k))
+
+        # Move the "Save Parameters" button under the About button using `pack`
         tk.Button(
             self.root, text="Save Parameters",
             bg=THEME_ACCENT, fg="white", font=THEME_FONT, relief="flat",
             command=self.save_params
-        ).pack(pady=5)
+        ).pack(pady=5)  # Positioned below About button using pack
 
         tk.Button(self.root, text="Reset", command=self.reset_fields).pack(pady=2)
         tk.Button(self.root, text="About", command=self.about).pack(pady=2)
@@ -209,10 +241,21 @@ class Dashboard:
             for k, v in data[self.user][self.mode.get()].items():
                 if k in self.entries:
                     self.entries[k].insert(0, v)
+                    self.sliders[k].set(v)
+
 
     def save_params(self):
         """Validate and save the entered parameters to patients.json."""
         params = {}
+
+        # Validate if LRL <= URL
+        lrl = float(self.entries["Lower Rate Limit"].get().strip())
+        url = float(self.entries["Upper Rate Limit"].get().strip())
+
+        # If LRL is greater than URL, show an error message and return
+        if lrl > url:
+            messagebox.showerror("Error", "Lower Rate Limit cannot be greater than Upper Rate Limit.")
+            return
 
         # Validate each entry against numeric and range limits
         for k, e in self.entries.items():
@@ -263,3 +306,72 @@ class Dashboard:
             "Includes Serial Device ID Detection\n"
             "Group #: 4"
         )
+    def update_entry_from_slider(self, key, val):
+        """Update entry when slider moves."""
+        self.entries[key].delete(0, tk.END)
+        self.entries[key].insert(0, str(val))
+
+    def update_slider_from_entry(self, key):
+        """Update slider when user types in the entry."""
+        text = self.entries[key].get().strip()
+        if text == "":
+            return
+        try:
+            val = float(text)
+        except:
+            return  # ignore invalid input until corrected
+
+        lo, hi = LIMITS[key]
+        if lo <= val <= hi:
+            self.sliders[key].set(val)
+    def cross_validate_limits(self):
+        """Ensure LRL ≤ URL. Highlight errors instantly."""
+        try:
+            lrl = float(self.entries["Lower Rate Limit"].get())
+            url = float(self.entries["Upper Rate Limit"].get())
+        except:
+            return  # Ignore if fields not ready (empty or invalid)
+
+        # RESET COLORS
+        normal_bg = "white"
+        error_bg = "#ffdddd"
+
+        self.entries["Lower Rate Limit"].config(bg=normal_bg)
+        self.entries["Upper Rate Limit"].config(bg=normal_bg)
+
+        # Check if LRL > URL and apply red highlight
+        if lrl > url:
+            self.entries["Lower Rate Limit"].config(bg=error_bg)
+            self.entries["Upper Rate Limit"].config(bg=error_bg)
+            return
+    
+    def show_tooltip(self, key):
+        """Display relevant info for each parameter, such as warnings."""
+        if key == "Sensitivity":
+            return "Too low of a sensitivity may cause undersensing."
+
+        # Default message
+        return f"Adjust the {key} as required."
+    def update_entry_from_slider(self, key, val):
+        """Update entry when slider moves."""
+        self.entries[key].delete(0, tk.END)
+        self.entries[key].insert(0, str(val))
+
+        # Cross-validate LRL and URL
+        self.cross_validate_limits()
+    def update_slider_from_entry(self, key):
+        """Update slider when user types in the entry."""
+        text = self.entries[key].get().strip()
+        if text == "":
+            return
+        try:
+            val = float(text)
+        except:
+            return
+
+        lo, hi = LIMITS[key]
+        if lo <= val <= hi:
+            self.sliders[key].set(val)
+
+        # Cross-validate LRL and URL
+        self.cross_validate_limits()
